@@ -1,10 +1,12 @@
 package com.example.composition.presentation
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.composition.R
@@ -16,13 +18,23 @@ import com.example.composition.domain.entity.Level
 class GameFragment : Fragment() {
 
     private lateinit var level: Level
+    private val gameViewModel by lazy {
+        ViewModelProvider(this)[GameViewModel::class.java]
+    }
+    private val tvOptions by lazy {
+        mutableListOf<TextView>().apply {
+            add(binding.tvOption1)
+            add(binding.tvOption2)
+            add(binding.tvOption3)
+            add(binding.tvOption4)
+            add(binding.tvOption5)
+            add(binding.tvOption6)
+        }
+    }
 
     private var _binding: FragmentGameBinding? = null
     private val binding: FragmentGameBinding
         get() = _binding ?: throw RuntimeException("FragmentGameBinding == null")
-
-    private lateinit var gameViewModel: GameViewModel
-    private lateinit var gameSettings: GameSettings
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,18 +51,61 @@ class GameFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        gameViewModel = ViewModelProvider(this)[GameViewModel::class.java]
-        gameSettings = gameViewModel.getGameSettings(level)
+        gameViewModel.startGame(level)
         observeViewModel()
         setupClickListeners()
-        if (savedInstanceState == null) {
-            gameViewModel.generateQuestion(gameSettings.maxSumValue)
+    }
+
+
+    private fun observeViewModel() {
+        gameViewModel.question.observe(viewLifecycleOwner) {
+            with(binding) {
+                tvSum.text = it.sum.toString()
+                tvLeftNumber.text = it.visibleNumber.toString()
+                for (i in 0 until tvOptions.size) {
+                    tvOptions[i].text = it.options[i].toString()
+                }
+            }
+        }
+        gameViewModel.percentOfRightAnswers.observe(viewLifecycleOwner) {
+            binding.progressBar.setProgress(it, true)
+        }
+        gameViewModel.enoughCountOfRightAnswers.observe(viewLifecycleOwner) {
+            binding.tvAnswersProgress.setTextColor(getColorByState(it))
+        }
+        gameViewModel.enoughPercentOfRightAnswers.observe(viewLifecycleOwner) {
+            val color = getColorByState(it)
+            binding.progressBar.progressTintList = ColorStateList.valueOf(color)
+        }
+        gameViewModel.formattedTime.observe(viewLifecycleOwner) {
+            binding.tvTimer.text = it
+        }
+        gameViewModel.progressOfAnswers.observe(viewLifecycleOwner) {
+            binding.tvAnswersProgress.text = it
+        }
+        gameViewModel.minPercent.observe(viewLifecycleOwner) {
+            binding.progressBar.secondaryProgress = it
+        }
+        gameViewModel.gameResult.observe(viewLifecycleOwner) {
+            launchGameFinishedFragment(it)
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun getColorByState(state: Boolean): Int {
+        val colorResId = if (state) {
+            android.R.color.holo_green_light
+        } else {
+            android.R.color.holo_red_light
+        }
+        return ContextCompat.getColor(requireContext(), colorResId)
+    }
+
+    private fun setupClickListeners() {
+        for (tvOption in tvOptions) {
+            tvOption.setOnClickListener {
+                gameViewModel.checkAnswer(tvOption.text.toString().toInt())
+            }
+        }
     }
 
     private fun parseArgs() {
@@ -59,89 +114,16 @@ class GameFragment : Fragment() {
         }
     }
 
-    private fun observeViewModel() {
-        gameViewModel.question.observe(viewLifecycleOwner) {
-            with(binding) {
-                tvSum.text = it.sum.toString()
-                tvLeftNumber.text = it.visibleNumber.toString()
-                tvOption1.text = it.options[0].toString()
-                tvOption2.text = it.options[1].toString()
-                tvOption3.text = it.options[2].toString()
-                tvOption4.text = it.options[3].toString()
-                tvOption5.text = it.options[4].toString()
-                tvOption6.text = it.options[5].toString()
-            }
-        }
-        gameViewModel.rightAnswers.observe(viewLifecycleOwner) {
-            binding.tvAnswersProgress.text = String.format(
-                getString(R.string.right_answers),
-                it,
-                gameSettings.minCountOfRightAnswers
-            )
-            binding.progressBar.progress = it
-        }
-        gameViewModel.formattedTime.observe(viewLifecycleOwner) {
-            binding.tvTimer.text = String.format("00:%02d", it)
-        }
-        gameViewModel.shouldOpenNextScreen.observe(viewLifecycleOwner) {
-            launchGameFinishedFragment(
-                GameResult(
-                    true,
-                    20,
-                    20,
-                    GameSettings(
-                        2,
-                        2,
-                        2,
-                        2
-                    )
-                )
-            )
-        }
-    }
-
-    private fun setupClickListeners() {
-        with(binding) {
-            tvOption1.setOnClickListener {
-                val answer = convertAnswer(tvOption1)
-                gameViewModel.checkAnswer(answer)
-                gameViewModel.generateQuestion(gameSettings.maxSumValue)
-            }
-            tvOption2.setOnClickListener {
-                val answer = convertAnswer(tvOption2)
-                gameViewModel.checkAnswer(answer)
-                gameViewModel.generateQuestion(gameSettings.maxSumValue)
-            }
-            tvOption3.setOnClickListener {
-                val answer = convertAnswer(tvOption3)
-                gameViewModel.checkAnswer(answer)
-                gameViewModel.generateQuestion(gameSettings.maxSumValue)
-            }
-            tvOption4.setOnClickListener {
-                val answer = convertAnswer(tvOption4)
-                gameViewModel.checkAnswer(answer)
-                gameViewModel.generateQuestion(gameSettings.maxSumValue)
-            }
-            tvOption5.setOnClickListener {
-                val answer = convertAnswer(tvOption5)
-                gameViewModel.checkAnswer(answer)
-                gameViewModel.generateQuestion(gameSettings.maxSumValue)
-            }
-            tvOption6.setOnClickListener {
-                val answer = convertAnswer(tvOption6)
-                gameViewModel.checkAnswer(answer)
-                gameViewModel.generateQuestion(gameSettings.maxSumValue)
-            }
-        }
-    }
-
-    private fun convertAnswer(textView: TextView) = textView.text.toString().toInt()
-
     private fun launchGameFinishedFragment(gameResult: GameResult) {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.main_container, GameFinishedFragment.newInstance(gameResult))
             .addToBackStack(null)
             .commit()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

@@ -6,11 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import com.example.composition.R
 import com.example.composition.databinding.FragmentChoseLevelBinding
 import com.example.composition.databinding.FragmentGameFinishedBinding
 import com.example.composition.domain.entity.GameResult
+import kotlin.math.roundToInt
 
 class GameFinishedFragment : Fragment() {
 
@@ -42,6 +44,7 @@ class GameFinishedFragment : Fragment() {
                     retryGame()
                 }
             })
+        setViews()
         binding.buttonRetry.setOnClickListener {
             retryGame()
         }
@@ -56,6 +59,44 @@ class GameFinishedFragment : Fragment() {
         requireArguments().getParcelable<GameResult>(GAME_RESULT_KEY)?.let {
             gameResult = it
         }
+    }
+
+    private fun setViews() {
+        if (gameResult.winner) {
+            binding.emojiResult.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_smile
+                )
+            )
+        } else {
+            binding.emojiResult.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    R.drawable.ic_sad
+                )
+            )
+        }
+        with(binding) {
+            tvRequiredAnswers.text = String.format(
+                resources.getString(R.string.required_score),
+                gameResult.gameSettings.minCountOfRightAnswers
+            )
+            tvRequiredPercentage.text = String.format(
+                resources.getString(R.string.required_percentage),
+                gameResult.gameSettings.minPercentOfRightAnswers
+            )
+            tvScoreAnswers.text = String.format(
+                resources.getString(R.string.score_answers),
+                gameResult.countOfRightAnswers
+            )
+            tvScorePercentage.text = String.format(
+                resources.getString(R.string.score_percentage),
+                (gameResult.countOfRightAnswers / gameResult.countOfQuestions.toDouble() * 100)
+                    .roundToInt()
+            )
+        }
+
     }
 
     private fun retryGame() {
