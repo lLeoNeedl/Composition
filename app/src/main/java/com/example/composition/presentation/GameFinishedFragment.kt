@@ -38,16 +38,8 @@ class GameFinishedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requireActivity().onBackPressedDispatcher
-            .addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    retryGame()
-                }
-            })
+        setClickListeners()
         setViews()
-        binding.buttonRetry.setOnClickListener {
-            retryGame()
-        }
     }
 
     override fun onDestroyView() {
@@ -61,21 +53,23 @@ class GameFinishedFragment : Fragment() {
         }
     }
 
+    private fun setClickListeners() {
+        requireActivity().onBackPressedDispatcher
+            .addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    retryGame()
+                }
+            })
+        binding.buttonRetry.setOnClickListener {
+            retryGame()
+        }
+    }
+
     private fun setViews() {
         if (gameResult.winner) {
-            binding.emojiResult.setImageDrawable(
-                ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_smile
-                )
-            )
+            binding.emojiResult.setImageResource(R.drawable.ic_smile)
         } else {
-            binding.emojiResult.setImageDrawable(
-                ContextCompat.getDrawable(
-                    requireContext(),
-                    R.drawable.ic_sad
-                )
-            )
+            binding.emojiResult.setImageResource(R.drawable.ic_sad)
         }
         with(binding) {
             tvRequiredAnswers.text = String.format(
@@ -92,11 +86,17 @@ class GameFinishedFragment : Fragment() {
             )
             tvScorePercentage.text = String.format(
                 resources.getString(R.string.score_percentage),
-                (gameResult.countOfRightAnswers / gameResult.countOfQuestions.toDouble() * 100)
-                    .roundToInt()
+                calculatePercentOfRightAnswers()
             )
         }
+    }
 
+    private fun calculatePercentOfRightAnswers(): Int {
+        return if (gameResult.countOfQuestions == 0) {
+            0
+        } else {
+            (gameResult.countOfRightAnswers / gameResult.countOfQuestions.toDouble() * 100).toInt()
+        }
     }
 
     private fun retryGame() {

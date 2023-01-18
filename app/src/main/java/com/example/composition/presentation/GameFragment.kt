@@ -12,14 +12,16 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.composition.R
 import com.example.composition.databinding.FragmentGameBinding
 import com.example.composition.domain.entity.GameResult
-import com.example.composition.domain.entity.GameSettings
 import com.example.composition.domain.entity.Level
 
 class GameFragment : Fragment() {
 
     private lateinit var level: Level
+    private val gameViewModelFactory by lazy {
+        GameViewModelFactory(requireActivity().application, level)
+    }
     private val gameViewModel by lazy {
-        ViewModelProvider(this)[GameViewModel::class.java]
+        ViewModelProvider(this, gameViewModelFactory)[GameViewModel::class.java]
     }
     private val tvOptions by lazy {
         mutableListOf<TextView>().apply {
@@ -51,9 +53,8 @@ class GameFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        gameViewModel.startGame(level)
         observeViewModel()
-        setupClickListeners()
+        setClickListeners()
     }
 
 
@@ -100,7 +101,7 @@ class GameFragment : Fragment() {
         return ContextCompat.getColor(requireContext(), colorResId)
     }
 
-    private fun setupClickListeners() {
+    private fun setClickListeners() {
         for (tvOption in tvOptions) {
             tvOption.setOnClickListener {
                 gameViewModel.checkAnswer(tvOption.text.toString().toInt())
