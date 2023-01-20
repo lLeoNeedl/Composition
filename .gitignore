@@ -8,3 +8,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+Test.kt
+Test2.kt
