@@ -13,9 +13,6 @@ import com.example.composition.databinding.FragmentGameFinishedBinding
 class GameFinishedFragment : Fragment() {
 
     private val args by navArgs<GameFinishedFragmentArgs>()
-    private val gameResult by lazy {
-        args.gameResult
-    }
 
     private var _binding: FragmentGameFinishedBinding? = null
     private val binding: FragmentGameFinishedBinding
@@ -48,24 +45,25 @@ class GameFinishedFragment : Fragment() {
     }
 
     private fun setViews() {
-        if (gameResult.winner) {
+        binding.gameResult = args.gameResult
+        if (args.gameResult.winner) {
             binding.emojiResult.setImageResource(R.drawable.ic_smile)
         } else {
             binding.emojiResult.setImageResource(R.drawable.ic_sad)
         }
         with(binding) {
-            tvRequiredAnswers.text = String.format(
-                resources.getString(R.string.required_score),
-                gameResult.gameSettings.minCountOfRightAnswers
-            )
-            tvRequiredPercentage.text = String.format(
-                resources.getString(R.string.required_percentage),
-                gameResult.gameSettings.minPercentOfRightAnswers
-            )
-            tvScoreAnswers.text = String.format(
-                resources.getString(R.string.score_answers),
-                gameResult.countOfRightAnswers
-            )
+//            tvRequiredAnswers.text = String.format(
+//                resources.getString(R.string.required_score),
+//                gameResult.gameSettings.minCountOfRightAnswers
+//            )
+//            tvRequiredPercentage.text = String.format(
+//                resources.getString(R.string.required_percentage),
+//                gameResult.gameSettings.minPercentOfRightAnswers
+//            )
+//            tvScoreAnswers.text = String.format(
+//                resources.getString(R.string.score_answers),
+//                gameResult.countOfRightAnswers
+//            )
             tvScorePercentage.text = String.format(
                 resources.getString(R.string.score_percentage),
                 calculatePercentOfRightAnswers()
@@ -74,10 +72,10 @@ class GameFinishedFragment : Fragment() {
     }
 
     private fun calculatePercentOfRightAnswers(): Int {
-        return if (gameResult.countOfQuestions == 0) {
+        return if (args.gameResult.countOfQuestions == 0) {
             0
         } else {
-            (gameResult.countOfRightAnswers / gameResult.countOfQuestions.toDouble() * 100).toInt()
+            (args.gameResult.countOfRightAnswers / args.gameResult.countOfQuestions.toDouble() * 100).toInt()
         }
     }
 
