@@ -1,32 +1,32 @@
-package com.example.composition.presentation
+package com.example.composition.presentation.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.composition.databinding.FragmentGameBinding
 import com.example.composition.domain.entity.GameResult
+import com.example.composition.presentation.viewmodel.GameViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class GameFragment : Fragment() {
 
     private val args by navArgs<GameFragmentArgs>()
 
-    private val gameViewModelFactory by lazy {
-        GameViewModelFactory(requireActivity().application, args.level)
-    }
     private val gameViewModel by lazy {
-        ViewModelProvider(this, gameViewModelFactory)[GameViewModel::class.java]
+        val viewModel: GameViewModel by viewModels()
+        viewModel.saveLevel(args.level)
+        viewModel
     }
 
     private var _binding: FragmentGameBinding? = null
     private val binding: FragmentGameBinding
         get() = _binding ?: throw RuntimeException("FragmentGameBinding == null")
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,7 +47,9 @@ class GameFragment : Fragment() {
 
     private fun launchGameFinishedFragment(gameResult: GameResult) {
         findNavController().navigate(
-            GameFragmentDirections.actionGameFragmentToGameFinishedFragment(gameResult)
+            GameFragmentDirections.actionGameFragmentToGameFinishedFragment(
+                gameResult
+            )
         )
     }
 
