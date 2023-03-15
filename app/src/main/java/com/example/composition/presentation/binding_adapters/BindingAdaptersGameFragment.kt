@@ -1,4 +1,4 @@
-package com.example.composition.presentation
+package com.example.composition.presentation.binding_adapters
 
 import android.content.Context
 import android.content.res.ColorStateList

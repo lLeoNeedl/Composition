@@ -1,12 +1,12 @@
 package com.example.composition.data
 
-import android.graphics.BitmapFactory.Options
 import com.example.composition.domain.entity.GameSettings
 import com.example.composition.domain.entity.Level
 import com.example.composition.domain.entity.Question
 import com.example.composition.domain.repository.GameRepository
 import java.lang.Integer.max
 import java.lang.Integer.min
+import javax.inject.Singleton
 import kotlin.random.Random
 
 object GameRepositoryImpl : GameRepository {
