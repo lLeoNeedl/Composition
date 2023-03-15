@@ -1,4 +1,4 @@
-package com.example.composition.presentation
+package com.example.composition.presentation.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -53,7 +53,9 @@ class ChooseLevelFragment : Fragment() {
 
     private fun launchGameFragment(level: Level) {
         findNavController().navigate(
-            ChooseLevelFragmentDirections.actionChooseLevelFragmentToGameFragment(level)
+            ChooseLevelFragmentDirections.actionChooseLevelFragmentToGameFragment(
+                level
+            )
         )
     }
 }

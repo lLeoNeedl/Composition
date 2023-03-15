@@ -1,29 +1,37 @@
-package com.example.composition.presentation
+package com.example.composition.presentation.viewmodel
 
 import android.app.Application
-import android.content.Context
 import android.os.CountDownTimer
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.example.composition.R
-import com.example.composition.data.GameRepositoryImpl
 import com.example.composition.domain.entity.GameResult
 import com.example.composition.domain.entity.GameSettings
 import com.example.composition.domain.entity.Level
 import com.example.composition.domain.entity.Question
+import com.example.composition.domain.repository.GameRepository
 import com.example.composition.domain.usecases.GenerateQuestionUseCase
 import com.example.composition.domain.usecases.GetGameSettingsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class GameViewModel(
+@HiltViewModel
+class GameViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val application: Application,
-    private val level: Level
+    repository: GameRepository
 ) : ViewModel() {
+
+
+    private val level by lazy {
+        savedStateHandle.get<Level>(LEVEL_KEY)
+            ?: throw RuntimeException("Param level is absent")
+    }
 
     private lateinit var gameSettings: GameSettings
 
-    private val repository = GameRepositoryImpl
     private val generateQuestionUseCase = GenerateQuestionUseCase(repository)
     private val getGameSettingsUseCase = GetGameSettingsUseCase(repository)
 
@@ -66,6 +74,10 @@ class GameViewModel(
 
     init {
         startGame()
+    }
+
+    fun saveLevel(level: Level) {
+        savedStateHandle[LEVEL_KEY] = level
     }
 
     private fun startGame() {
@@ -151,6 +163,8 @@ class GameViewModel(
     }
 
     companion object {
+
+        const val LEVEL_KEY = "level"
 
         private const val MILLIS_IN_SECONDS = 1000L
         private const val SECONDS_IN_MINUTES = 60
